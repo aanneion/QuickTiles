@@ -43,6 +43,7 @@ class TileRegistryConsistencyTest {
         val unhandled = switchKeys
             .filter { it !in nonTileSwitchKeys }
             .filter { it !in registry.keys }
+            .toList()
 
         assertEquals("Switches without a tile service: $unhandled", emptyList<String>(), unhandled)
     }
@@ -65,6 +66,7 @@ class TileRegistryConsistencyTest {
         val missing = TileRegistry.preferenceServices()
             .filterValues { it.name !in declared }
             .keys
+            .toList()
 
         assertEquals("Tiles without a service in AndroidManifest.xml: $missing",
             emptyList<String>(), missing)
