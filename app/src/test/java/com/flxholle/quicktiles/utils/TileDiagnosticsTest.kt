@@ -28,13 +28,19 @@ class TileDiagnosticsTest {
     @Test
     fun `a fatal error names the thread, the exception and the first frames`() {
         val error = IllegalStateException("tile is not bound")
+        error.stackTrace = arrayOf(
+            StackTraceElement("com.flxholle.quicktiles.tiles.GrayscaleTileService", "onClick",
+                "GrayscaleTileService.kt", 42),
+            StackTraceElement("com.flxholle.quicktiles.abstract_tiles.SelectionTileService",
+                "onClick", "SelectionTileService.kt", 53),
+        )
         val line = TileDiagnostics.formatFatal(Thread.currentThread(), error)
 
         assertTrue(line.startsWith("FATAL in thread "))
         assertTrue(line.contains(currentThreadName()))
         assertTrue(line.contains("java.lang.IllegalStateException: tile is not bound"))
-        assertTrue("The stack trace should be part of the line", line.contains(" at "))
-        assertTrue(line.contains("|"))
+        assertTrue("The first frame is missing: " + line, line.contains("GrayscaleTileService.onClick"))
+        assertTrue("The frames are not separated: " + line, line.contains(" | "))
     }
 
     @Test

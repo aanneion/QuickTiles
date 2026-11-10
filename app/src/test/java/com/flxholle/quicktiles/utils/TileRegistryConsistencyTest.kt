@@ -30,7 +30,8 @@ class TileRegistryConsistencyTest {
         "tile_diagnostics_enabled",
     )
 
-    private val namespace = TileRegistry::class.java.`package`.name.removeSuffix(".utils")
+    private val namespace: String =
+        TileRegistry::class.java.name.removeSuffix(".utils.TileRegistry")
 
     @Test
     fun `every tile switch of the settings screen has a service`() {
