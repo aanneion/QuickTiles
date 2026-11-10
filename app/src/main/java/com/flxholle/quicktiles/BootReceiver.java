@@ -27,7 +27,7 @@ public class BootReceiver extends BroadcastReceiver {
 
         try {
             // Need update tile after boot (and after the app was updated)
-            ArrayMap<String, Class<?>> preferencesServices = SettingsActivity.getPreferenceService();
+            Map<String, Class<?>> preferencesServices = SettingsActivity.getPreferenceService();
             Map<String, ?> preferences = PreferenceManager.getDefaultSharedPreferences(context).getAll();
             PackageManager pm = context.getPackageManager();
             for (Map.Entry<String, Class<?>> entry : preferencesServices.entrySet()) {

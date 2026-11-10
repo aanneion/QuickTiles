@@ -36,6 +36,86 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Unit tests and lint of the code itself. The tests guard the three places that have to agree
+  # for a tile to work (settings switch, TileRegistry, manifest); lint is informational for now.
+  verify:
+    name: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platforms;android-36 platform-tools'
+          accept-android-sdk-licenses: true
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon testDebugUnitTest --stacktrace 2>&1 | tee "${RUNNER_TEMP}/unit-tests.log"
+
+      # A failed build has to be diagnosable without the full log: everything interesting becomes an
+      # annotation of the run, which shows up in the UI and in `gh run view`.
+      - name: Explain the failure
+        if: failure()
+        run: |
+          python3 - "$RUNNER_TEMP/unit-tests.log" <<'PY' || true
+          import sys
+
+          try:
+              lines = open(sys.argv[1], errors="replace").read().splitlines()
+          except OSError:
+              print("::error title=Unit tests::The test log is missing")
+              raise SystemExit(0)
+
+          markers = ("e: ", "error:", "FAILED", "What went wrong", "Execution failed",
+                     "Caused by:", "warning:")
+          picked = [line.strip() for line in lines if any(marker in line for marker in markers)]
+          if not picked:
+              picked = [line.strip() for line in lines[-40:] if line.strip()]
+          message = " | ".join(dict.fromkeys(picked))[:6000]
+          message = message.replace("%", "%25").replace("\r", "")
+          print("::error title=Unit tests failed::" + message)
+          PY
+
+      - name: Test summary
+        if: failure()
+        run: |
+          for report in app/build/test-results/testDebugUnitTest/*.xml; do
+            [ -f "$report" ] || continue
+            echo "--- $report"
+            sed -n '1,40p' "$report"
+          done
+
+      - name: Lint (informational)
+        continue-on-error: true
+        run: ./gradlew --no-daemon lintDebug --stacktrace
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: |
+            app/build/reports/tests/**
+            app/build/reports/lint-results-*.html
+          if-no-files-found: ignore
+          retention-days: 30
+
   build:
     name: assembleRelease
     runs-on: ubuntu-latest
@@ -163,14 +243,30 @@ jobs:
           set -euo pipefail
           TAG="${{ steps.tag.outputs.tag }}"
           VERSION="${{ steps.version.outputs.name }}"
+
+          # Release notes are the section of CHANGELOG.md that belongs to this version, so the
+          # release page says what actually changed instead of listing pull request titles.
+          NOTES=$(mktemp)
+          awk -v version="$VERSION" '
+            BEGIN { capture = 0 }
+            $0 ~ "^## " version { capture = 1; print; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > "$NOTES"
+          if [ ! -s "$NOTES" ]; then
+            echo "QuickTiles $VERSION" > "$NOTES"
+            echo "" >> "$NOTES"
+            echo "See CHANGELOG.md for the details." >> "$NOTES"
+          fi
+
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --clobber
-            gh release edit "$TAG" --title "QuickTiles $VERSION" --latest
+            gh release edit "$TAG" --title "QuickTiles $VERSION" --notes-file "$NOTES" --latest
           elif git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            gh release create "$TAG" dist/*.apk --title "QuickTiles $VERSION" --generate-notes
+            gh release create "$TAG" dist/*.apk --title "QuickTiles $VERSION" --notes-file "$NOTES"
           else
             gh release create "$TAG" dist/*.apk \
               --title "QuickTiles $VERSION" \
               --target "$GITHUB_SHA" \
-              --generate-notes
+              --notes-file "$NOTES"
           fi

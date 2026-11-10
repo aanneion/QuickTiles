@@ -261,6 +261,18 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/troubleshooting">
+        <SwitchPreferenceCompat
+            android:icon="@drawable/ic_perm_device_information"
+            android:key="tile_diagnostics_enabled"
+            android:summary="@string/tile_diagnostics_enabled_summary"
+            android:title="@string/tile_diagnostics_enabled_title" />
+
+        <Preference
+            android:icon="@drawable/ic_perm_device_information"
+            android:key="tile_self_check"
+            android:summary="@string/tile_self_check_summary"
+            android:title="@string/tile_self_check_title" />
+
         <Preference
             android:icon="@drawable/ic_perm_device_information"
             android:key="tile_help"

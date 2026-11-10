@@ -1,0 +1,5 @@
+2.0.1
+- Tiles keep working with the app closed; the volume tile shows the short media slider again.
+- New Settings > Troubleshooting: Self check (permissions, tile components, battery) and tile diagnostics you can copy/share.
+- Diagnostics recording is opt-in and no longer costs anything during normal use.
+- Unit tests and a CI check that keep the settings switches, the tile services and the manifest in sync.

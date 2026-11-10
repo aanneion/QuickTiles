@@ -139,6 +139,12 @@
     <string name="volume_panel_instant_summary">Show the volume slider on top of the Quick Settings panel instead of closing it first (may be ignored by the system on Android 17)</string>
     <string name="volume_panel_expanded_title">Expanded volume panel</string>
     <string name="volume_panel_expanded_summary">Show every volume stream (ring, notification, alarm, call) instead of the short media slider</string>
+    <string name="tile_diagnostics_enabled_title">Record tile diagnostics</string>
+    <string name="tile_diagnostics_enabled_summary">Keeps the last 120 tile events and crashes. Off by default; switched on automatically when something fails.</string>
+    <string name="tile_diagnostics_summary_off">Recording is off - turn it on to see tile events</string>
+    <string name="tile_self_check_title">Self check</string>
+    <string name="tile_self_check_summary">Check permissions, tile components and battery restrictions</string>
+    <string name="tile_state_missing_permission">Enabled, but the permission is missing - tap the switch off and on to grant it</string>
     <string name="tile_help">Why do my tiles stop working?</string>
     <string name="tile_help_summary">Fix tiles that only work while the app is open</string>
     <string name="app_info">App info</string>
@@ -148,7 +154,7 @@
     <string name="tile_diagnostics_crash_summary">A crash was recorded - open this to see it</string>
     <string name="tile_diagnostics">Tile diagnostics</string>
     <string name="tile_diagnostics_summary">Shows whether taps on your tiles reach the app</string>
-    <string name="tile_diagnostics_empty">No tile events recorded yet. Tap one of your tiles and reopen the app.</string>
+    <string name="tile_diagnostics_empty">Recording is off. Turn on "Record tile diagnostics", tap a tile, then come back.</string>
     <string name="tile_diagnostics_last">Last event: %1$s</string>
     <string name="share">Share</string>
     <string name="tile_help_message">Android only starts QuickTiles in the background as long as the phone allows it.\n\nIf the diagnostics log ends with \"previous process ended ... USER_REQUESTED\" or \"reason=OTHER\" and there are no tile events after it, the phone killed the app. Android then refuses to start any component of it, tiles included, until the app is opened again. No app can bypass that - but these settings stop the phone from doing it:\n\n1. Battery\nSet the battery usage of QuickTiles to \"Unrestricted\" / \"No restrictions\".\n\n2. Autostart\nXiaomi/HyperOS, OPPO/realme, vivo, OnePlus and Huawei builds need Autostart and background activity allowed for QuickTiles.\n\n3. Lock the app in the recent apps screen\nOn Xiaomi/HyperOS, OPPO, vivo and OnePlus: open the recent apps, long press the QuickTiles card and tap the lock icon. A locked app is not cleared by the ROM.\n\n4. Never use Force stop\nThe Stop / Force stop button on the app info page disables all tiles until the app is opened again.\n\n5. Developer options\nTurn off \"Don\'t keep activities\" and set \"Background process limit\" to \"Standard limit\". Both kill every background process of QuickTiles a few seconds after the app is closed.\n\nAfterwards open Quick Settings once: the tiles work from then on without the app being open.\n\nTap \"App info\" below to reach the battery and autostart settings.\n\nIf the log shows a new onClick line for every tap, the system does reach the app and the problem is a tile permission, not a killed app - in that case send the log.</string>

@@ -178,7 +178,10 @@ Two switches in **Miscellaneous** change that behaviour:
 ### Tile diagnostics
 
 Version 2.0 records what actually happens when a tile is tapped, including crashes of the app
-process. Open the app, go to
+process. Recording is off by default to keep the tiles cheap - turn it on with
+**Settings → Troubleshooting → Record tile diagnostics**; it switches itself on as soon as something
+fails, so a crash is never lost. **Self check** next to it verifies the permissions, the tile
+components and the battery state of the enabled tiles in one go. Open the app, go to
 **Settings → Troubleshooting → Tile diagnostics**. The list is ordered newest first and contains
 one line per event, for example:
 
@@ -273,6 +276,14 @@ in-app diagnostics.
 ## Contributing
 
 Contributions make open source amazing. If you have an idea or fix, please:
+
+### Tests
+
+`./gradlew testDebugUnitTest` runs the JVM unit tests. They guard the three places that have to agree
+for a tile to work - the switch in `root_preferences.xml`, the key to service table in
+`TileRegistry` and the `<service>` entry in `AndroidManifest.xml` - plus the value cycling of
+selection tiles and the diagnostics helpers. CI runs them on every push (`tests` job), lint runs
+alongside without blocking.
 
 ### Prerequisites
 

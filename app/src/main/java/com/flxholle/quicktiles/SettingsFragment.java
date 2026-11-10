@@ -39,6 +39,7 @@ import com.flxholle.quicktiles.utils.GrantPermissionDialogs;
 import com.flxholle.quicktiles.utils.SelectApp;
 import com.flxholle.quicktiles.utils.SharedPreferencesUtil;
 import com.flxholle.quicktiles.utils.TileDiagnostics;
+import com.flxholle.quicktiles.utils.TileSelfCheck;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 
 import java.util.ArrayList;
@@ -111,6 +112,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             });
         }
 
+        SwitchPreferenceCompat diagnosticsEnabled = findPreference(TileDiagnostics.PREF_RECORDING);
+        if (diagnosticsEnabled != null) {
+            diagnosticsEnabled.setChecked(TileDiagnostics.isRecordingEnabled(requireContext()));
+            diagnosticsEnabled.setOnPreferenceChangeListener((preference, newValue) -> {
+                TileDiagnostics.setRecordingEnabled(requireContext(), Boolean.TRUE.equals(newValue));
+                updateDiagnosticsSummary();
+                return true;
+            });
+        }
+
+        Preference selfCheck = findPreference("tile_self_check");
+        if (selfCheck != null) {
+            selfCheck.setOnPreferenceClickListener(preference -> {
+                showSelfCheck();
+                return true;
+            });
+        }
+
         Preference tileHelp = findPreference("tile_help");
         if (tileHelp != null) {
             tileHelp.setOnPreferenceClickListener(preference -> {
@@ -124,6 +143,27 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onResume() {
         super.onResume();
         updateDiagnosticsSummary();
+        updateTilePermissionSummaries();
+    }
+
+    /**
+     * Marks enabled tiles whose permission was revoked in the meantime (adb, system settings), which
+     * otherwise only shows up as "the tile does nothing".
+     */
+    private void updateTilePermissionSummaries() {
+        Map<String, Class<?>> services = SettingsActivity.getPreferenceService();
+        for (Map.Entry<String, Class<?>> entry : services.entrySet()) {
+            Preference preference = findPreference(entry.getKey());
+            if (!(preference instanceof SwitchPreferenceCompat)) {
+                continue;
+            }
+            if (!((SwitchPreferenceCompat) preference).isChecked()) {
+                continue;
+            }
+            boolean missing = TileSelfCheck.isPermissionMissing(requireContext(), entry.getValue());
+            preference.setSummary(missing ? getString(R.string.tile_state_missing_permission)
+                    : (CharSequence) null);
+        }
     }
 
     /**
@@ -133,6 +173,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private void updateDiagnosticsSummary() {
         Preference diagnostics = findPreference("tile_diagnostics");
         if (diagnostics == null) {
+            return;
+        }
+        if (!TileDiagnostics.isRecordingEnabled(requireContext())) {
+            diagnostics.setSummary(R.string.tile_diagnostics_summary_off);
             return;
         }
         String fatal = TileDiagnostics.lastFatal(requireContext());
@@ -207,6 +251,25 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return getString(R.string.tile_diagnostics_empty);
     }
 
+    private void showSelfCheck() {
+        final String report = TileSelfCheck.buildReport(requireContext());
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.tile_self_check_title)
+                .setMessage(report)
+                .setPositiveButton(R.string.copy, (dialog, which) -> copyToClipboard(report))
+                .setNeutralButton(R.string.share, (dialog, which) -> shareText(report))
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void shareText(String text) {
+        Intent intent = new Intent(Intent.ACTION_SEND)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.tile_diagnostics))
+                .putExtra(Intent.EXTRA_TEXT, text);
+        startActivity(Intent.createChooser(intent, getString(R.string.share)));
+    }
+
     private void copyToClipboard(String text) {
         try {
             ClipboardManager clipboard = (ClipboardManager)
@@ -232,19 +295,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 .setPositiveButton(R.string.copy, (dialog, which) -> {
                     copyToClipboard(message);
                 })
-                .setNeutralButton(R.string.share, (dialog, which) -> {
-                    Intent intent = new Intent(Intent.ACTION_SEND)
-                            .setType("text/plain")
-                            .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.tile_diagnostics))
-                            .putExtra(Intent.EXTRA_TEXT, message);
-                    startActivity(Intent.createChooser(intent, getString(R.string.share)));
-                })
+                .setNeutralButton(R.string.share, (dialog, which) -> shareText(message))
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
     private void setSwitchPreferences() {
-        ArrayMap<String, Class<?>> preferencesServices = SettingsActivity.getPreferenceService();
+        Map<String, Class<?>> preferencesServices = SettingsActivity.getPreferenceService();
         ArrayList<Class<?>> secureSettingsServices = SettingsActivity.getSecureSettingsServices();
         ArrayList<Class<?>> modifySystemSettingsServices = SettingsActivity.getModifySystemSettingsServices();
         ArrayList<Class<?>> secureSettingsDumpServices = SettingsActivity.getSecureSettingsAndDumpServices();
