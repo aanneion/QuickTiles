@@ -21,6 +21,7 @@ import android.service.quicksettings.Tile
 import android.util.Log
 import androidx.annotation.CallSuper
 import com.flxholle.quicktiles.utils.TileDiagnostics
+import com.flxholle.quicktiles.utils.ValueCycle
 
 abstract class SelectionTileService<T : Any> : BaseTileService() {
 
@@ -50,7 +51,7 @@ abstract class SelectionTileService<T : Any> : BaseTileService() {
             return
         }
 
-        val newIndex = (valueList.indexOf(currentValue) + 1) % valueList.size
+        val newIndex = ValueCycle.next(valueList.indexOf(currentValue), valueList.size)
         val newValue = valueList[newIndex]
 
         if (checkPermission()) {

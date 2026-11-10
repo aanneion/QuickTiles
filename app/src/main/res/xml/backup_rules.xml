@@ -6,6 +6,8 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
+    <!-- The tile diagnostics are device specific and can contain app names -->
+    <exclude domain="sharedpref" path="quicktiles_diagnostics.xml" />
     <!--
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>

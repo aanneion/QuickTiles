@@ -3,6 +3,36 @@
 All notable changes to this fork of QuickTiles. The format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.0.1 - 2026-11-02
+
+Maintenance release: tests, a CI check for the tile plumbing, and a cheaper diagnostics recorder.
+
+### Tests
+
+* JVM unit tests for the three places that have to agree for a tile to work: the switch in
+  `root_preferences.xml`, the key to service table and the `<service>` entry in the manifest. A tile
+  that is missing in one of them silently does nothing on the device, which is exactly the class of
+  bug this project kept hitting.
+* Unit tests for the selection tile value cycling (`ValueCycle`) and the diagnostics helpers.
+* New `tests` job in the workflow (`./gradlew testDebugUnitTest`); lint runs next to it without
+  blocking the release. The generated `ExampleUnitTest`/`ExampleInstrumentedTest` are gone.
+
+### Diagnostics
+
+* Recording is now opt-in (**Troubleshooting → Record tile diagnostics**) and switches itself on as
+  soon as an error or a crash is recorded, so failures are never lost while normal use stays silent.
+* Entries are written on a single background thread instead of rewriting the whole buffer on the
+  calling thread for every tile callback.
+* New **Troubleshooting → Self check**: one screen that lists enabled tiles with missing
+  permissions, tile services the system disabled, the battery state and the last process exits.
+* The diagnostics file is excluded from cloud backup.
+
+### Internals
+
+* The tile key to service table moved out of `SettingsActivity` into the plain Java class
+  `TileRegistry`, which the tests can load without an Android runtime.
+* Release notes are generated from this file instead of from pull request titles.
+
 ## 2.0.0 - 2026-11-02
 
 The release that makes Quick Settings tiles work while QuickTiles is **not** running, and that

@@ -66,73 +66,19 @@ import com.flxholle.quicktiles.tiles.UsbDebuggingTileService;
 import com.flxholle.quicktiles.tiles.VibrateCallsTileService;
 import com.flxholle.quicktiles.tiles.WirelessUsbDebuggingTileService;
 import com.flxholle.quicktiles.utils.SharedPreferencesUtil;
+import com.flxholle.quicktiles.utils.TileRegistry;
 import com.bytehamster.lib.preferencesearch.SearchPreferenceResult;
 import com.bytehamster.lib.preferencesearch.SearchPreferenceResultListener;
 import com.flxholle.quicktiles.R;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity implements SearchPreferenceResultListener {
     private com.flxholle.quicktiles.SettingsFragment prefsFragment;
 
-    public static ArrayMap<String, Class<?>> getPreferenceService() {
-        ArrayMap<String, Class<?>> servicePreferences = new ArrayMap<>();
-        servicePreferences.put("play_pause", PlayPauseTileService.class);
-        servicePreferences.put("next_song", NextSongTileService.class);
-        servicePreferences.put("previous_song", PreviousSongTileService.class);
-        servicePreferences.put("media_volume", MediaVolumeTileService.class);
-        servicePreferences.put("grayscale", GrayscaleTileService.class);
-        servicePreferences.put("adaptive_brightness", AdaptiveBrightnessTileService.class);
-        servicePreferences.put("usb_debugging", UsbDebuggingTileService.class);
-        servicePreferences.put("usb_wifi_debugging", WirelessUsbDebuggingTileService.class);
-        servicePreferences.put("finish_activities", FinishActivitiesTileService.class);
-        servicePreferences.put("keep_screen_on", KeepScreenOnTileService.class);
-        servicePreferences.put("demo_mode", DemoModeTileService.class);
-        servicePreferences.put("animator_duration", AnimatorDurationTileService.class);
-        servicePreferences.put("show_taps", ShowTapsTileService.class);
-        servicePreferences.put("disable_all_animations", ToggleAnimationTileService.class);
-        servicePreferences.put("new_alarm", NewAlarmTileService.class);
-        servicePreferences.put("new_timer", NewTimerTileService.class);
-        servicePreferences.put("take_photo", TakePhotoTileService.class);
-        servicePreferences.put("record_video", RecordVideoTileService.class);
-        servicePreferences.put("open_calculator", OpenCalculatorTileService.class);
-        servicePreferences.put("open_volume_panel", OpenVolumePanelTileService.class);
-        servicePreferences.put("adjust_brightness", BrightnessTileService.class);
-        servicePreferences.put("open_files", OpenFilesTileService.class);
-        servicePreferences.put("battery", BatteryTileService.class);
-        servicePreferences.put("vpn", OpenVpnTileService.class);
-        servicePreferences.put("data_usage", OpenDataUsageTileService.class);
-        servicePreferences.put("about_phone", OpenAboutPhoneTileService.class);
-        servicePreferences.put("connected_devices", OpenConnectedDevicesTileService.class);
-        servicePreferences.put("notification_history", OpenNotificationLogTileService.class);
-        servicePreferences.put("search_settings", OpenSettingsSearchTileService.class);
-        servicePreferences.put("new_event", NewCalendarEventTileService.class);
-        servicePreferences.put("make_call", MakeCallTileService.class);
-        servicePreferences.put("counter", CounterTileService.class);
-        servicePreferences.put("screen_timeout", ScreenTimeoutTileService.class);
-        servicePreferences.put("vibrate_calls", VibrateCallsTileService.class);
-        servicePreferences.put("switch_states", DoNotDisturbSwitchTileService.class);
-        servicePreferences.put("force_rotation", RotationSwitchTileService.class);
-        servicePreferences.put("screen_cast", OpenCastTileService.class);
-        servicePreferences.put("developer_options", OpenDeveloperOptionsTileService.class);
-        servicePreferences.put("open_language", OpenLocaleTileService.class);
-        servicePreferences.put("custom_app_one", OpenAppOneTileService.class);
-        servicePreferences.put("custom_app_two", OpenAppTwoTileService.class);
-        servicePreferences.put("custom_app_three", OpenAppThreeTileService.class);
-        servicePreferences.put("custom_app_four", OpenAppFourTileService.class);
-        servicePreferences.put("custom_app_five", OpenAppFiveTileService.class);
-        servicePreferences.put("switch_silence_loud", SilenceLoudSwitchTileService.class);
-        servicePreferences.put("open_display", OpenDisplayTileService.class);
-        servicePreferences.put("open_home", OpenHomeTileService.class);
-        servicePreferences.put("open_privacy", OpenPrivacyTileService.class);
-        servicePreferences.put("open_user_dictionary", OpenUserDictionaryTileService.class);
-        servicePreferences.put("power_dialog", PowerDialogTileService.class);
-        servicePreferences.put("take_screenshot", ScreenshotTileService.class);
-        servicePreferences.put("lock_screen", LockScreenTileService.class);
-        servicePreferences.put("toggle_split_screen", ToggleSplitScreenTileService.class);
-        servicePreferences.put("fix_rotation", FixRotationTileService.class);
-        servicePreferences.put("heads_up", HeadsUpTileService.class);
-        return servicePreferences;
+    public static Map<String, Class<?>> getPreferenceService() {
+        return TileRegistry.preferenceServices();
     }
 
     public static ArrayMap<Class<?>, String> getCustomAppKeys() {
