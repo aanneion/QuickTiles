@@ -3,6 +3,15 @@
 All notable changes to this fork of QuickTiles. The format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.1.2 - 2026-11-02
+
+English only.
+
+* The German, Turkish and Chinese translations are gone (`values-de`, `values-tr`, `values-zh-rTW`),
+  together with the Chinese store listing under `fastlane/metadata/android/zh-TW`.
+* `resourceConfigurations` is now `["en"]`, so the support libraries stop shipping their translations
+  as well. All 55 tiles, the troubleshooting tools and the settings screen are unchanged, in English.
+
 ## 2.1.1 - 2026-11-02
 
 The same app in a third of the download size: **6.42 MB -> 2.02 MB**.
