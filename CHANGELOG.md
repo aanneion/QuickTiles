@@ -3,6 +3,29 @@
 All notable changes to this fork of QuickTiles. The format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.1.1 - 2026-11-02
+
+The same app in a third of the download size: **6.42 MB -> 2.02 MB**.
+
+### Size
+
+* R8 (`isMinifyEnabled`) and the resource shrinker (`isShrinkResources`) are enabled for release
+  builds. Keep rules cover the preference classes that are inflated from XML, SearchPreference and
+  aboutlibraries; our own class names and line numbers are kept, because the tile diagnostics record
+  stack traces and those have to stay readable.
+* Resource configurations are limited to the four locales the app is translated into (en, de, tr,
+  zh-rTW). The support libraries ship translations for every locale there is and that table was the
+  biggest single thing in the apk - it cost 858 KiB of `resources.arsc`, now 540 KiB. Anyone whose
+  system language is not one of those four sees English for the library strings, exactly like the
+  app's own strings already were.
+* Play dependency metadata and `META-INF` licence/notice files are no longer packaged.
+
+### Build
+
+* Every build now reports what the apk is made of (largest entries and the split between code,
+  resources and metadata) as an annotation of the run, so the next size change can be judged instead
+  of guessed. The R8 mapping file is uploaded as an artifact.
+
 ## 2.1.0 - 2026-11-02
 
 A whole new look: Material 3, wallpaper colours and a settings screen that reads as sections.
