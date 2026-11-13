@@ -90,15 +90,8 @@ public class PreferenceCardDecoration extends RecyclerView.ItemDecoration {
      * themes that do not know the Material 3 container roles.
      */
     private static int cardColor(Context context) {
-        int attr = context.getResources()
-                .getIdentifier("colorSurfaceContainerLow", "attr", "com.google.android.material");
-        int color = resolve(context, attr);
-        if (color != 0) {
-            return color;
-        }
-        int fallback = context.getResources()
-                .getIdentifier("colorSurfaceContainer", "attr", "com.google.android.material");
-        color = resolve(context, fallback);
+        // Referenced directly so the resource shrinker keeps the attribute
+        int color = resolve(context, com.google.android.material.R.attr.colorSurfaceContainerLow);
         if (color != 0) {
             return color;
         }

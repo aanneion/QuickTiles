@@ -227,6 +227,19 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Report APK size
+        if: always()
+        run: python3 .github/scripts/apk-size.py dist/*.apk
+
+      - name: Upload mapping file
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v7
         with:

@@ -1,21 +1,21 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# R8 keep rules for the release build.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Our own class names stay readable: the tile diagnostics record the first stack frames of a crash
+# or of a failed tile callback, and an obfuscated trace would make them worthless. Members are still
+# removed when nothing uses them.
+-keepnames class com.flxholle.quicktiles.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Stack traces are part of the diagnostics log
+-keepattributes SourceFile,LineNumberTable
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Preferences are inflated from XML by class name
+-keep public class * extends androidx.preference.Preference {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+# SearchPreference builds and looks up its own views and result pages
+-keep class com.bytehamster.lib.preferencesearch.** { *; }
+
+# aboutlibraries reads its generated json and entity classes are mapped into it
+-keep class com.mikepenz.aboutlibraries.** { *; }
+-dontwarn com.mikepenz.**

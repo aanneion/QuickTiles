@@ -1,0 +1,2 @@
+2.1.1
+- The APK is 68% smaller: 6.4 MB -> 2.0 MB (code and resource shrinking).
