@@ -1,23 +1,32 @@
 package com.flxholle.quicktiles.utils;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.flxholle.quicktiles.R;
+import androidx.appcompat.app.AlertDialog;
 
+import com.flxholle.quicktiles.R;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 public class SelectApp {
     private static List<ApplicationInfo> getApplicationList(Context context) {
@@ -56,26 +65,62 @@ public class SelectApp {
         return context.getApplicationInfo();
     }
 
+    /**
+     * Opens the app picker as a bottom sheet with a search field, so an app can be found without
+     * scrolling through every installed app.
+     */
     public static Dialog selectApps(Context context, String key, Runnable runAfterSelection) {
-        LinearLayout customView = new LinearLayout(context);
-        customView.setOrientation(LinearLayout.VERTICAL);
-        customView.setPadding((int) context.getResources().getDimension(R.dimen.custom_app_padding), 0, (int) context.getResources().getDimension(R.dimen.custom_app_padding), 0);
+        final BottomSheetDialog dialog = new BottomSheetDialog(context);
+        View content = LayoutInflater.from(context).inflate(R.layout.select_app_sheet, null);
 
-        TextView description = new TextView(context);
-        description.setText("(" + context.getString(R.string.system_apps_are_excluded) + ")");
-        ListView applicationsList = new ListView(context);
-        applicationsList.setPadding(0, (int) context.getResources().getDimension(R.dimen.custom_app_top), 0, 0);
+        ListView applicationsList = content.findViewById(R.id.app_list);
+        EditText search = content.findViewById(R.id.app_search);
 
-        customView.addView(description);
-        customView.addView(applicationsList);
+        final List<ApplicationInfo> allApps = getApplicationList(context);
+        final ApplicationAdapter adapter =
+                new ApplicationAdapter(context, allApps, dialog, key, runAfterSelection);
+        applicationsList.setAdapter(adapter);
 
-        Dialog dialog = new AlertDialog.Builder(context)
-                .setView(customView)
-                .setPositiveButton(null, null)
-                .setNegativeButton(R.string.cancel, null)
-                .setTitle(R.string.select_an_app)
-                .create();
-        applicationsList.setAdapter(new ApplicationAdapter(context, getApplicationList(context), dialog, key, runAfterSelection));
+        // The list gets the space the sheet does not need for its header and search field
+        int listHeight = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.5f);
+        applicationsList.getLayoutParams().height = listHeight;
+
+        final PackageManager packageManager = context.getPackageManager();
+        search.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s == null ? "" : s.toString().trim().toLowerCase(Locale.getDefault());
+                if (query.isEmpty()) {
+                    adapter.setApps(allApps);
+                    return;
+                }
+                List<ApplicationInfo> matches = new ArrayList<>();
+                for (ApplicationInfo app : allApps) {
+                    String label = app.loadLabel(packageManager).toString().toLowerCase(Locale.getDefault());
+                    if (label.contains(query)) {
+                        matches.add(app);
+                    }
+                }
+                adapter.setApps(matches);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        dialog.setContentView(content);
+        try {
+            BottomSheetBehavior<?> behavior = dialog.getBehavior();
+            behavior.setSkipCollapsed(true);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        } catch (Exception ignored) {
+            // The default behaviour is a half expanded sheet, which is fine as well
+        }
         return dialog;
     }
 
@@ -94,15 +139,11 @@ public class SelectApp {
                 0
         );
 
-//        final TextView description = new TextView(context);
-//        description.setText(context.getString(R.string.enter_custom_app_name));
-//        layout.addView(description);
-
-        final android.widget.EditText input = new android.widget.EditText(context);
+        final EditText input = new EditText(context);
         input.setText(preselection);
         layout.addView(input);
 
-        AlertDialog dialog = new AlertDialog.Builder(context)
+        AlertDialog dialog = new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.set_custom_app_name)
                 .setView(layout)
                 .setPositiveButton(R.string.ok, (d, which) -> {
@@ -121,7 +162,7 @@ public class SelectApp {
     }
 
     static class ApplicationAdapter extends ArrayAdapter<ApplicationInfo> {
-        private List<ApplicationInfo> appsList;
+        private final List<ApplicationInfo> appsList = new ArrayList<>();
         private Context context;
         private PackageManager packageManager;
         private Dialog dialog;
@@ -129,23 +170,32 @@ public class SelectApp {
         private Runnable runAfterSelection;
 
         public ApplicationAdapter(Context context, List<ApplicationInfo> appsList, Dialog dialog, String saveKey, Runnable runAfterSelection) {
-            super(context, 0, appsList);
+            super(context, 0, new ArrayList<>(appsList));
+            this.appsList.addAll(appsList);
             this.context = context;
-            this.appsList = appsList;
             packageManager = context.getPackageManager();
             this.dialog = dialog;
             this.saveKey = saveKey;
             this.runAfterSelection = runAfterSelection;
         }
 
+        /**
+         * Replaces the shown apps, used by the search field.
+         */
+        void setApps(List<ApplicationInfo> apps) {
+            appsList.clear();
+            appsList.addAll(apps);
+            notifyDataSetChanged();
+        }
+
         @Override
         public int getCount() {
-            return ((null != appsList) ? appsList.size() : 0);
+            return appsList.size();
         }
 
         @Override
         public ApplicationInfo getItem(int position) {
-            return ((null != appsList) ? appsList.get(position) : null);
+            return position >= 0 && position < appsList.size() ? appsList.get(position) : null;
         }
 
         @Override
@@ -159,7 +209,7 @@ public class SelectApp {
             if (null == view) {
                 LayoutInflater layoutInflater = (LayoutInflater) context
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                view = layoutInflater.inflate(R.layout.app_listview, null);
+                view = layoutInflater.inflate(R.layout.app_listview, parent, false);
             }
 
             final ApplicationInfo data = appsList.get(position);

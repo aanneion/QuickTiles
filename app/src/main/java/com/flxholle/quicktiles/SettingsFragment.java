@@ -20,14 +20,19 @@ import android.text.method.LinkMovementMethod;
 import android.util.ArrayMap;
 import android.util.Pair;
 import android.util.TypedValue;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.SwitchPreferenceCompat;
@@ -36,10 +41,13 @@ import com.bytehamster.lib.preferencesearch.SearchConfiguration;
 import com.bytehamster.lib.preferencesearch.SearchPreference;
 import com.flxholle.quicktiles.tiles.CounterTileService;
 import com.flxholle.quicktiles.utils.GrantPermissionDialogs;
+import com.flxholle.quicktiles.utils.PreferenceCardDecoration;
 import com.flxholle.quicktiles.utils.SelectApp;
 import com.flxholle.quicktiles.utils.SharedPreferencesUtil;
 import com.flxholle.quicktiles.utils.TileDiagnostics;
 import com.flxholle.quicktiles.utils.TileSelfCheck;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 
 import java.util.ArrayList;
@@ -61,10 +69,22 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        RecyclerView list = getListView();
+        int horizontal = getResources().getDimensionPixelSize(R.dimen.settings_horizontal_padding);
+        list.setPadding(horizontal, 0, horizontal,
+                getResources().getDimensionPixelSize(R.dimen.settings_bottom_padding));
+        list.setClipToPadding(false);
+        list.addItemDecoration(new PreferenceCardDecoration(requireContext()));
+    }
+
+    @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
-        tintIcons(getPreferenceScreen(), getThemeColor(android.R.attr.textColorPrimary));
+        tintIcons(getPreferenceScreen(), getThemeColor(com.google.android.material.R.attr.colorPrimary));
 
         setSwitchPreferences();
 
@@ -75,7 +95,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         Preference credits = findPreference("credits");
         credits.setOnPreferenceClickListener((view) -> {
-            Dialog dialog = new AlertDialog.Builder(requireContext())
+            Dialog dialog = new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.credits)
                     .setMessage(Html.fromHtml(getString(R.string.credits_description), Html.FROM_HTML_MODE_LEGACY))
                     .setPositiveButton(R.string.ok, (button, listener) -> {
@@ -197,7 +217,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
      * links to the two system screens where that can be changed.
      */
     private void showTileHelp() {
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.tile_help)
                 .setMessage(R.string.tile_help_message)
                 .setPositiveButton(R.string.app_info, (dialog, which) -> openAppInfo())
@@ -253,7 +273,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     private void showSelfCheck() {
         final String report = TileSelfCheck.buildReport(requireContext());
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.tile_self_check_title)
                 .setMessage(report)
                 .setPositiveButton(R.string.copy, (dialog, which) -> copyToClipboard(report))
@@ -289,7 +309,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 ? getString(R.string.tile_diagnostics_empty)
                 : verdictFor(log) + "\n\n" + log;
 
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.tile_diagnostics)
                 .setMessage(message)
                 .setPositiveButton(R.string.copy, (dialog, which) -> {
@@ -503,10 +523,35 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     private void setComponentState(Object newValue, Class<?> serviceClass) {
-        if (newValue.equals(Boolean.TRUE))
+        if (newValue.equals(Boolean.TRUE)) {
             enableComponent(serviceClass);
-        else
+            showQuickSettingsHint();
+        } else {
             disableComponent(serviceClass);
+        }
+    }
+
+    /**
+     * Enabling the switch only makes the tile available - it still has to be dragged into the Quick
+     * Settings area, which is the step everybody misses once. Say it once, then stay quiet.
+     */
+    private void showQuickSettingsHint() {
+        try {
+            android.content.SharedPreferences prefs =
+                    PreferenceManager.getDefaultSharedPreferences(requireContext());
+            if (prefs.getBoolean("quick_settings_hint_shown", false)) {
+                return;
+            }
+            prefs.edit().putBoolean("quick_settings_hint_shown", true).apply();
+
+            View view = getView();
+            if (view == null) {
+                return;
+            }
+            Snackbar.make(view, R.string.quick_settings_hint, Snackbar.LENGTH_LONG).show();
+        } catch (IllegalStateException ignored) {
+            // The fragment is gone, the hint is not important enough to care
+        }
     }
 
     private void disableComponent(Class<?> serviceClass) {
@@ -521,20 +566,30 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     }
 
+    /**
+     * Resolves a colour of the current theme. Dynamic colours (Android 12+) are set on the theme at
+     * runtime, so the value is not always a resource - it can be a plain colour as well.
+     */
     private int getThemeColor(int themeAttributeId) {
         try {
             TypedValue outValue = new TypedValue();
             Resources.Theme theme = requireContext().getTheme();
-            boolean wasResolved = theme.resolveAttribute(themeAttributeId, outValue, true);
-            if (wasResolved) {
-                return ContextCompat.getColor(requireContext(), outValue.resourceId);
-            } else {
-                // fallback colour handling
-                return Color.BLACK;
+            if (theme.resolveAttribute(themeAttributeId, outValue, true)) {
+                if (outValue.resourceId != 0) {
+                    return ContextCompat.getColor(requireContext(), outValue.resourceId);
+                }
+                if (outValue.type >= TypedValue.TYPE_FIRST_COLOR_INT
+                        && outValue.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+                    return outValue.data;
+                }
             }
-        } catch (Exception e) {
-            return Color.BLACK;
+        } catch (Exception ignored) {
+            // fall through to the default
         }
+        boolean night = (getResources().getConfiguration().uiMode
+                & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        return night ? Color.WHITE : Color.BLACK;
     }
 }
 

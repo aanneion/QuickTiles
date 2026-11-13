@@ -1,5 +1,6 @@
 package com.flxholle.quicktiles;
 
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -9,6 +10,11 @@ import android.view.View;
 import android.view.Window;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.preference.PreferenceManager;
+
+import com.google.android.material.appbar.MaterialToolbar;
 
 import com.flxholle.quicktiles.accessibility_tiles.LockScreenTileService;
 import com.flxholle.quicktiles.accessibility_tiles.PowerDialogTileService;
@@ -162,25 +168,53 @@ public class SettingsActivity extends AppCompatActivity implements SearchPrefere
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // The app bar and the list draw behind the system bars, the icons have to follow the theme
         Window window = getWindow();
         window.setStatusBarColor(Color.TRANSPARENT);
         window.setNavigationBarColor(Color.TRANSPARENT);
-        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.setStatusBarContrastEnforced(false);
             window.setNavigationBarContrastEnforced(false);
         }
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setLogo(R.mipmap.ic_launcher);
-            getSupportActionBar().setDisplayUseLogoEnabled(true);
-        }
+        boolean darkTheme = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(window, window.getDecorView());
+        controller.setAppearanceLightStatusBars(!darkTheme);
+        controller.setAppearanceLightNavigationBars(!darkTheme);
 
         prefsFragment = new com.flxholle.quicktiles.SettingsFragment();
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.settings, prefsFragment)
                 .commit();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateToolbarSubtitle();
+    }
+
+    /**
+     * Shows how many tiles are enabled, which is the one number this screen is about.
+     */
+    private void updateToolbarSubtitle() {
+        if (getSupportActionBar() == null) {
+            return;
+        }
+        Map<String, Class<?>> services = getPreferenceService();
+        int enabled = 0;
+        for (String key : services.keySet()) {
+            if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean(key, false)) {
+                enabled++;
+            }
+        }
+        getSupportActionBar().setSubtitle(
+                getString(R.string.tiles_enabled_count, enabled, services.size()));
     }
 
     @Override

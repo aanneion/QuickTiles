@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.os.Bundle;
 
 import com.flxholle.quicktiles.utils.TileDiagnostics;
+import com.google.android.material.color.DynamicColors;
 
 /**
  * Records what happens to the app process itself: when it starts, how the previous process ended,
@@ -22,6 +23,10 @@ public class QuickTilesApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Android 12+ paints the app with the wallpaper colours (Material You); older versions keep
+        // the brand palette of the theme.
+        DynamicColors.applyToActivitiesIfAvailable(this);
+
         installCrashHandler();
         registerLifecycleLogging();
 
