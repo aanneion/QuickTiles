@@ -12,8 +12,8 @@ android {
         applicationId = "com.asdoi.quicktiles"
         minSdk = 24
         targetSdk = 36
-        versionCode = 28
-        versionName = "2.1.0"
+        versionCode = 29
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,7 +36,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Shrinking is safe here: every tile service is declared in the manifest, every
+            // preference class is either referenced from code or covered by app/proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -50,6 +53,22 @@ android {
             }
         }
     }
+    dependenciesInfo {
+        // Play metadata inside the apk, pointless for builds that are installed by hand
+        includeInApk = false
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/*.version",
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*",
+                "META-INF/*.kotlin_module",
+            )
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
