@@ -16,6 +16,12 @@ android {
         versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // The app is translated into these languages; the support libraries ship translations for
+        // every locale there is, and that table is by far the biggest thing in the apk. Dropping the
+        // locales the app does not speak saves around 600 KiB - for those users the library strings
+        // fall back to English instead.
+        resourceConfigurations += listOf("en", "de", "tr", "zh-rTW")
     }
 
     signingConfigs {
