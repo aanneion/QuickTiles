@@ -2,4 +2,10 @@
 <resources>
     <dimen name="custom_app_padding">24dp</dimen>
     <dimen name="custom_app_top">12dp</dimen>
+
+    <!-- Settings screen -->
+    <dimen name="settings_horizontal_padding">12dp</dimen>
+    <dimen name="settings_bottom_padding">40dp</dimen>
+    <dimen name="settings_card_corner">22dp</dimen>
+    <dimen name="settings_card_inset">2dp</dimen>
 </resources>

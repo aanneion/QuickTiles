@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ContextThemeWrapper;
 
 import com.flxholle.quicktiles.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -32,7 +33,7 @@ public class GrantPermissionDialogs {
     private static final String DUMP = Manifest.permission.DUMP;
 
     public static Dialog getModifySystemSettingsDialog(final Context context) {
-        return new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.myDialog))
+        return new MaterialAlertDialogBuilder(context)
                 .setCancelable(true)
                 .setTitle(R.string.permission_required)
                 .setMessage(R.string.permission_modify_system_settings_description)
@@ -50,7 +51,7 @@ public class GrantPermissionDialogs {
     }
 
     private static Dialog getSystemPermissionDialog(final String adbCommand, final String rootCommand, final Context context) {
-        return new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.myDialog))
+        return new MaterialAlertDialogBuilder(context)
                 .setCancelable(true)
                 .setTitle(R.string.permission_required)
                 .setMessage(context.getString(R.string.permission_required_description, adbCommand))
@@ -121,7 +122,7 @@ public class GrantPermissionDialogs {
     }
 
     public static Dialog getNotificationPolicyDialog(final Context context) {
-        return new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.myDialog))
+        return new MaterialAlertDialogBuilder(context)
                 .setCancelable(true)
                 .setTitle(R.string.permission_required)
                 .setMessage(R.string.permission_notification_policy_description)
@@ -152,7 +153,7 @@ public class GrantPermissionDialogs {
     }
 
     public static Dialog getAccessibilityServiceDialog(final Context context) {
-        return new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.myDialog))
+        return new MaterialAlertDialogBuilder(context)
                 .setCancelable(true)
                 .setTitle(R.string.permission_required)
                 .setMessage(context.getString(R.string.permission_accessibility_service_description, context.getString(R.string.app_name)))
@@ -208,7 +209,7 @@ public class GrantPermissionDialogs {
     }
 
     public static Dialog getRootPermissionDialog(final Context context) {
-        return new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.myDialog))
+        return new MaterialAlertDialogBuilder(context)
                 .setCancelable(true)
                 .setTitle(R.string.permission_required)
                 .setMessage(context.getString(R.string.permission_root_description))
