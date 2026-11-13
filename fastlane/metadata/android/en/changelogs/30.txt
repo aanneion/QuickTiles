@@ -1,0 +1,3 @@
+2.1.2
+- English only: the app is no longer translated, and the support libraries no longer ship their other locales either.
+- Smaller APK again, and one interface to maintain.
