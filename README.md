@@ -277,6 +277,9 @@ in-app diagnostics.
 
 Contributions make open source amazing. If you have an idea or fix, please:
 
+The interface is Material 3: on Android 12+ the palette comes from your wallpaper, below that it is the
+brand violet. Tiles are grouped into cards, and the app bar tells you how many of them are enabled.
+
 ### Tests
 
 `./gradlew testDebugUnitTest` runs the JVM unit tests. They guard the three places that have to agree

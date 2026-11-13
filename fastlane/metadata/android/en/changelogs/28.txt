@@ -1,0 +1,6 @@
+2.1.0
+- New Material 3 look: on Android 12+ the app is painted in your wallpaper colours, below that it keeps the brand violet.
+- Settings: large title with a live "x of 55 tiles enabled" line, every category now sits on a rounded card, accent-coloured icons.
+- All dialogs follow Material 3.
+- The app picker is a bottom sheet with a search field.
+- One-time hint after you enable your first tile: it still has to be added in the Quick Settings editor.

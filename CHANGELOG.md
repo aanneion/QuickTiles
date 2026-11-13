@@ -3,6 +3,30 @@
 All notable changes to this fork of QuickTiles. The format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.1.0 - 2026-11-02
+
+A whole new look: Material 3, wallpaper colours and a settings screen that reads as sections.
+
+### Look and feel
+
+* Theme is now `Theme.Material3.DayNight.NoActionBar`. On Android 12+ the app takes its palette from
+  the wallpaper (Material You); every older version keeps the brand violet.
+* The settings screen has an app bar with a large title and a live "x of 55 tiles enabled" subtitle.
+  The rows of each category sit on a rounded card, so the 16 sections are visible at a glance instead
+  of looking like one endless list.
+* Icons are tinted with the accent colour, which means they follow the wallpaper as well.
+* All permission, credits, diagnostics and self check dialogs are Material 3 dialogs.
+* The app picker is a bottom sheet with a search field instead of a list dialog you have to scroll.
+* One-time hint after the first enabled tile: enabling a tile and adding it to Quick Settings are two
+  different steps, and only the second one puts it in the shade.
+* Status and navigation bar icons now follow the theme; they used to be forced dark, which made them
+  invisible in dark mode.
+
+### Internals
+
+* `PreferenceCardDecoration` draws the cards, so no preference layout had to be replaced.
+* Theme colours are resolved for both resource and dynamic (runtime) colour values.
+
 ## 2.0.1 - 2026-11-02
 
 Maintenance release: tests, a CI check for the tile plumbing, and a cheaper diagnostics recorder.
